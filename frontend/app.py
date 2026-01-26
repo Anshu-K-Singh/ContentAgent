@@ -100,23 +100,27 @@ else:
         with st.expander("📄 Review Research Brief", expanded=True):
             data = workflow_data.get("research_data", {})
             
-            # Editable Text Area for Feedback loop
+            # Show key points prominently
+            st.markdown("### 🔑 Key Takeaways")
+            for point in data.get("key_points", []):
+                st.markdown(f"- {point}")
+            
+            st.divider()
+            
+            # Show full summary
             summary_text = st.text_area(
-                "Research Summary (You can edit this to correct facts):", 
+                "Research Summary (You can edit this):", 
                 value=data.get("summary", ""),
                 height=300
             )
             
-            st.write("### Sources Found:")
-            for source in data.get("sources", []):
-                st.markdown(f"- [{source}]({source})")
+            st.markdown("**Sources:**")
+            for src in data.get("sources", []):
+                st.markdown(f"- {src}")
             
-            col1, col2 = st.columns([1, 4])
-            with col1:
-                if st.button("Approve & Strategize"):
-                    # Send potentially edited summary as feedback
-                    send_approval(st.session_state.workflow_id, feedback=summary_text)
-                    st.rerun()
+            if st.button("Approve & Strategize"):
+                send_approval(st.session_state.workflow_id, feedback=summary_text)
+                st.rerun()
 
     # ---------------------------------------------------------
     # STATE: STRATEGIZING

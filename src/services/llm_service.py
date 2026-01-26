@@ -29,13 +29,22 @@ class LLMService:
         try:
             print(f"🤖 Calling OpenRouter Model: {self.client.model_name}")
             response = await self.client.ainvoke(prompt)
-            return response.content
+            
+            # Add logging
+            content = response.content
+            print(f"📨 Received response ({len(content)} chars)")
+            
+            return content
+            
         except Exception as e:
             print(f"❌ OpenRouter Error: {e}")
-            import json
-            return json.dumps({
+            
+            # ⚠️ THIS IS THE PROBLEM - You're returning JSON string for errors
+            # but the research_node tries to parse it as research data!
+            error_response = json.dumps({
                 "error": "AI Service unavailable",
-                "linkedin_post": "Error generating content.", 
-                "twitter_thread": [],
-                "strategies": []
+                "message": str(e)
             })
+            
+            print(f"⚠️ Returning error response: {error_response}")
+            return error_response  # This causes the parsing error
