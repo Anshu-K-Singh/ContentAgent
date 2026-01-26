@@ -11,12 +11,10 @@ class LLMService:
             "base_url": "https://openrouter.ai/api/v1",
             "default_headers": {
                 "HTTP-Referer": "http://localhost:8000",
-                "X-Title": "ContentForge Agent"
+                "X-Title": "ContentAgent"
             }
         }
 
-        # We use the same reliable model for both tasks to keep it simple.
-        # This one passed your test successfully.
         self.client = ChatOpenAI(
             model="meta-llama/llama-3.3-70b-instruct:free",
             temperature=0.7,
@@ -34,7 +32,6 @@ class LLMService:
             return response.content
         except Exception as e:
             print(f"❌ OpenRouter Error: {e}")
-            # Return a polite error JSON so the app doesn't crash
             import json
             return json.dumps({
                 "error": "AI Service unavailable",

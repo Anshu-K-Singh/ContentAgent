@@ -65,8 +65,7 @@ class WorkflowRepo:
         await self.db.commit()
 
 
-    # Open src/repos/agent/workflow_repo.py and add this method to the class:
-
+    
     async def save_selection(self, workflow_id: str, strategy_id: int):
         """
         Saves the user's choice (e.g., Strategy #2) to the DB.

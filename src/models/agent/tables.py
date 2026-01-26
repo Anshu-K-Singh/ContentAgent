@@ -12,7 +12,6 @@ class WorkflowTable(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     topic = Column(String, nullable=False)
     
-    # Store Pydantic models as JSON
     status = Column(String, default=WorkflowStatus.RESEARCHING.value)
     research_data = Column(JSON, nullable=True)
     strategies = Column(JSON, nullable=True) # List of dicts

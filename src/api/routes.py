@@ -3,14 +3,14 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
-from src.core.database import get_db, AsyncSessionLocal  # Added AsyncSessionLocal
+from src.core.database import get_db, AsyncSessionLocal  
 from src.models.agent.schemas import WorkflowResponse, WorkflowStatus, StartWorkflowRequest, ResearchData, ContentStrategy  # Added ResearchData, ContentStrategy
 from src.repos.agent.workflow_repo import WorkflowRepo
 from src.agents.graph import research_app, strategy_app, drafting_app
 
 router = APIRouter(prefix="/agent", tags=["Agent"])
 
-# --- HELPER FUNCTION ---
+# HELPER FUNCTION 
 async def get_state_from_db(workflow_id: str):
     async with AsyncSessionLocal() as db:
         repo = WorkflowRepo(db)
@@ -31,8 +31,7 @@ async def get_state_from_db(workflow_id: str):
             "selected_strategy_id": int(workflow.selected_strategy_id) if workflow.selected_strategy_id else None
         }
 
-# --- BACKGROUND TASKS ---
-# We run these in the background so the UI doesn't freeze
+
 
 async def run_research_task(workflow_id: str, topic: str):
     """
@@ -49,7 +48,7 @@ async def run_strategy_task(workflow_id: str):
     Runs the Strategy Graph -> Updates DB -> Stops
     """
     print(f"🚀 [Task] Starting Strategy Gen for {workflow_id}")
-    # Load state from DB so the node has the research data!
+    # Load state from DB so the node has the research data
     initial_state = await get_state_from_db(workflow_id)
     await strategy_app.ainvoke(initial_state)
     print(f"✅ [Task] Strategy Gen Complete for {workflow_id}")
@@ -59,13 +58,13 @@ async def run_drafting_task(workflow_id: str):
     Runs Drafting Graph -> Updates DB -> Stops
     """
     print(f"🚀 [Task] Starting Drafting for {workflow_id}")
-    # Load state so the node has the selection!
+    # Load state so the node has the selection
     initial_state = await get_state_from_db(workflow_id)
     await drafting_app.ainvoke(initial_state)
     print(f"✅ [Task] Drafting Complete for {workflow_id}")
 
 
-# --- ENDPOINTS ---
+#  ENDPOINTS
 
 @router.post("/start", response_model=WorkflowResponse)
 async def start_workflow(
@@ -73,9 +72,7 @@ async def start_workflow(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Step 1: Create DB Record & Trigger Research
-    """
+   
     repo = WorkflowRepo(db)
     # 1. Create Record
     workflow = await repo.create_workflow(request.topic)
@@ -96,18 +93,13 @@ async def get_workflow_status(
     workflow_id: str,
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    UI polls this to see if Research is done.
-    """
+    
     repo = WorkflowRepo(db)
     workflow = await repo.get_workflow(workflow_id)
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
     
-    # Convert DB model to Pydantic Response
-    # Note: We need to ensure JSON fields are parsed correctly if using SQLite
-    # SQLAlchemy + Pydantic usually handles this if configured right, 
-    # but explicit conversion helps.
+    
     return workflow
 
 @router.post("/{workflow_id}/approve-research")
@@ -117,34 +109,31 @@ async def approve_research(
     background_tasks: BackgroundTasks = None,
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Step 2: Human approves research -> Trigger Strategy
-    """
     repo = WorkflowRepo(db)
     workflow = await repo.get_workflow(workflow_id)
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
 
-    # 1. Update DB with Feedback (if any)
+    
     if workflow.research_data:
         # Load current data
         # If SQLite stores as dict, great. If string, json.loads it.
         current_data = workflow.research_data if isinstance(workflow.research_data, dict) else dict(workflow.research_data)
         
-        # We need to map this to ResearchData model to use the repo method
+        
         from src.models.agent.schemas import ResearchData
         
-        # Update feedback
+        
         if user_feedback:
             current_data['user_feedback'] = user_feedback
             
         research_obj = ResearchData(**current_data)
         await repo.save_research(workflow_id, research_obj)
 
-    # 2. Update Status manually to ensure UI sees the change immediately
+    
     await repo.update_status(workflow_id, WorkflowStatus.STRATEGIZING)
     
-    # 3. Trigger Strategy Task
+    
     background_tasks.add_task(run_strategy_task, workflow_id)
     
     return {"status": "strategizing"}
@@ -156,9 +145,7 @@ async def select_strategy(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Step 3: Human selects angle -> Trigger Drafting
-    """
+    
     try:
         repo = WorkflowRepo(db)
         await repo.update_status(workflow_id, WorkflowStatus.DRAFTING)

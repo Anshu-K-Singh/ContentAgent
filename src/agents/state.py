@@ -12,8 +12,7 @@ class AgentState(TypedDict):
     strategies: Optional[List[ContentStrategy]]
     selected_strategy_id: Optional[int]
     
-    # Final Output
+
     final_content: Optional[GeneratedContent]
     
-    # Error handling
     error: Optional[str]

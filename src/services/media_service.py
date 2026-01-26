@@ -3,9 +3,7 @@ from urllib.parse import quote
 
 class MediaService:
     async def generate_image_url(self, prompt: str) -> str:
-        """
-        Generates an AI image using Pollinations.ai (Free, No API Key).
-        """
+       
         print(f"🎨 Generating Image for: {prompt[:50]}...")
         
         # Clean the prompt for URL
@@ -18,5 +16,4 @@ class MediaService:
         
         return image_url
 
-    # Future-proof: If you get a Flux key, add a method here:
-    # async def generate_flux_image(self, prompt: str): ...
+   
