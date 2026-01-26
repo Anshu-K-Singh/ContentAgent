@@ -5,7 +5,7 @@ import json
 
 # --- CONFIG ---
 # API_URL = "http://localhost:8000/agent"
-API_URL = "https://contentagent.onrender.com"
+API_URL = "https://contentagent.onrender.com/agent"
 st.set_page_config(page_title="ContentForge Agent", page_icon="🤖", layout="wide")
 
 # --- SESSION STATE ---
